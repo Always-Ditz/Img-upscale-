@@ -12,6 +12,8 @@ const resetBtn = document.getElementById('resetBtn');
 const previewArea = document.getElementById('previewArea');
 const originalPreview = document.getElementById('originalPreview');
 const upscaledPreview = document.getElementById('upscaledPreview');
+const upscaledBox = document.getElementById('upscaledBox');
+const resultActions = document.getElementById('resultActions');
 const processingOverlay = document.getElementById('processingOverlay');
 const scaleButtons = document.querySelectorAll('.scale-btn');
 const loadingScreen = document.getElementById('loading-screen');
@@ -98,11 +100,9 @@ function handleFile(file) {
         previewArea.classList.add('visible');
         upscaleBtn.disabled = false;
         
-        // Hide download and reset buttons
-        downloadBtn.classList.remove('visible');
-        resetBtn.classList.remove('visible');
-        downloadBtn.disabled = true;
-        resetBtn.disabled = true;
+        // Hide upscaled box and result actions
+        upscaledBox.classList.remove('visible');
+        resultActions.classList.remove('visible');
     };
     reader.readAsDataURL(file);
 }
@@ -135,11 +135,9 @@ async function upscaleImage() {
         // Display upscaled image
         upscaledPreview.src = upscaledImageUrl;
         
-        // Show download and reset buttons after success
-        downloadBtn.classList.add('visible');
-        resetBtn.classList.add('visible');
-        downloadBtn.disabled = false;
-        resetBtn.disabled = false;
+        // Show upscaled box and result action buttons
+        upscaledBox.classList.add('visible');
+        resultActions.classList.add('visible');
 
     } catch (error) {
         console.error('Error:', error);
@@ -183,9 +181,7 @@ function resetAll() {
     previewArea.classList.remove('visible');
     upscaleBtn.disabled = true;
     
-    // Hide download and reset buttons
-    downloadBtn.classList.remove('visible');
-    resetBtn.classList.remove('visible');
-    downloadBtn.disabled = true;
-    resetBtn.disabled = true;
-}
+    // Hide upscaled box and result actions
+    upscaledBox.classList.remove('visible');
+    resultActions.classList.remove('visible');
+                     }
