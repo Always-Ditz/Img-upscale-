@@ -1,0 +1,19 @@
+{
+  "name": "image-upscaler",
+  "version": "1.0.0",
+  "description": "AI-powered image upscaler with glassmorphism design",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "busboy": "^1.6.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
