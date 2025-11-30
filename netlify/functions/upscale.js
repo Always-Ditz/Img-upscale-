@@ -135,25 +135,30 @@ async function imgupscale(image, { scale = 4 } = {}) {
             }
         });
         
-        // Get CF token
-        const { data: cf } = await axios.post('https://api.nekolabs.web.id/tools/bypass/cf-turnstile', {
-            url: 'https://supawork.ai/ai-photo-enhancer',
-            siteKey: '0x4AAAAAACBjrLhJyEE6mq1c'
-        });
-        
-        if (!cf?.result) {
-            throw new Error('Failed to get cf token.');
+        // Get CF token - dengan error handling yang lebih baik
+        let cfToken = '';
+        try {
+            const { data: cf } = await axios.post('https://api.nekolabs.web.id/tools/bypass/cf-turnstile', {
+                url: 'https://supawork.ai/ai-photo-enhancer',
+                siteKey: '0x4AAAAAACBjrLhJyEE6mq1c'
+            }, {
+                timeout: 10000 // 10 detik timeout
+            });
+            cfToken = cf?.result || '';
+        } catch (cfError) {
+            console.log('CF bypass failed, trying without token:', cfError.message);
+            // Lanjut tanpa CF token
         }
         
         // Get challenge token
         const { data: t } = await inst.get('/sys/challenge/token', {
             headers: {
-                'x-auth-challenge': cf.result
+                'x-auth-challenge': cfToken
             }
         });
         
         if (!t?.data?.challenge_token) {
-            throw new Error('Failed to get token.');
+            throw new Error('Failed to get challenge token.');
         }
         
         // Create upscale task
@@ -173,14 +178,16 @@ async function imgupscale(image, { scale = 4 } = {}) {
         });
         
         if (!task?.data?.creation_id) {
-            throw new Error('Failed to create task.');
+            throw new Error('Failed to create upscale task.');
         }
         
-        // Poll for result
+        // Poll for result - increase timeout untuk scale besar
         let attempts = 0;
-        const maxAttempts = 60; // 60 seconds timeout
+        const maxAttempts = scale >= 16 ? 120 : 60; // 120 detik untuk 16x, 60 detik untuk lainnya
         
         while (attempts < maxAttempts) {
+            await new Promise(res => setTimeout(res, 1000));
+            
             const { data } = await inst.get('/media/aigc/result/list/v1', {
                 params: {
                     page_no: 1,
@@ -191,17 +198,22 @@ async function imgupscale(image, { scale = 4 } = {}) {
             
             const list = data?.data?.list?.[0]?.list?.[0];
             
-            if (list && list.status === 1) {
-                return list.url;
+            if (list) {
+                if (list.status === 1) {
+                    // Success
+                    return list.url;
+                } else if (list.status === -1) {
+                    // Failed
+                    throw new Error('Upscale task failed. The image might be too large or the server is busy.');
+                }
             }
             
-            await new Promise(res => setTimeout(res, 1000));
             attempts++;
         }
         
-        throw new Error('Upscale timeout. Please try again.');
+        throw new Error('Upscale timeout. Please try with a smaller scale or try again later.');
         
     } catch (error) {
         throw new Error(error.message);
     }
-          }
+                    }
