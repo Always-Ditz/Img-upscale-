@@ -155,16 +155,24 @@ async function downloadImage() {
     try {
         // Use proxy to avoid CORS
         const response = await fetch('/.netlify/functions/download?url=' + encodeURIComponent(upscaledImageUrl));
+        
+        if (!response.ok) {
+            throw new Error('Download failed');
+        }
+        
         const blob = await response.blob();
         
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
+        // Gunakan selectedScale yang sebenarnya
         a.download = `upscaled_${selectedScale}x_${Date.now()}.png`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        
+        console.log(`Downloaded with scale: ${selectedScale}x`);
     } catch (error) {
         console.error('Download error:', error);
         alert('Failed to download image. Please try again.');
@@ -184,4 +192,4 @@ function resetAll() {
     // Hide upscaled box and result actions
     upscaledBox.classList.remove('visible');
     resultActions.classList.remove('visible');
-                     }
+        }
